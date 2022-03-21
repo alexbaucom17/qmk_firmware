@@ -32,6 +32,8 @@
 
 /* Regular configuration unrelated to the adapter. */
 
+#define TAPPING_TOGGLE 2
+
 #ifdef VIA_ENABLE
 /* VIA configuration. */
 #define DYNAMIC_KEYMAP_LAYER_COUNT 4
@@ -44,9 +46,6 @@
   { 0, 5 }
 #define VIAL_UNLOCK_COMBO_COLS \
   { 0, 0 }
-
-#define RGB_MATRIX_FRAMEBUFFER_EFFECTS
-#define RGB_MATRIX_KEYPRESSES
 
 #endif  // VIAL_ENABLE
 
