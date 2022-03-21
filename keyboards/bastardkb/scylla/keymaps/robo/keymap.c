@@ -16,6 +16,7 @@
  */
 
 #include QMK_KEYBOARD_H
+#include "color.h"
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -71,3 +72,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                         _______,  _______,       _______, _______
   ),
 };
+
+
+void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    HSV hsv = {HSV_GREEN};
+
+    if (IS_LAYER_ON(1)) {
+        hsv.h = 170;
+        hsv.s = 255;
+        hsv.v = 255;
+    } else if(IS_LAYER_ON(2)) {
+        hsv.h = 0;
+        hsv.s = 255;
+        hsv.v = 255;
+    } else if(IS_LAYER_ON(3)) {
+        hsv.h = 43;
+        hsv.s = 255;
+        hsv.v = 255;
+    }
+
+    if (hsv.v > rgb_matrix_get_val()) {
+        hsv.v = rgb_matrix_get_val();
+    }
+    RGB rgb = hsv_to_rgb(hsv);
+
+    rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+}

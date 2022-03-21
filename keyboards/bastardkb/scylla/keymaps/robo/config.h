@@ -33,6 +33,7 @@
 /* Regular configuration unrelated to the adapter. */
 
 #define TAPPING_TOGGLE 2
+#define SPLIT_LAYER_STATE_ENABLE
 
 #ifdef VIA_ENABLE
 /* VIA configuration. */
