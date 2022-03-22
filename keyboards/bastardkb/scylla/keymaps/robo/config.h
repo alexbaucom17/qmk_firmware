@@ -34,6 +34,7 @@
 
 #define TAPPING_TOGGLE 2
 #define SPLIT_LAYER_STATE_ENABLE
+#define SPLIT_LED_STATE_ENABLE
 
 #ifdef VIA_ENABLE
 /* VIA configuration. */

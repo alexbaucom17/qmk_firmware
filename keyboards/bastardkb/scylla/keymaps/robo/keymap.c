@@ -49,7 +49,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [2] = LAYOUT_split_4x6_5(
     _______,  _______,   _______,   _______,   _______,   _______,			    _______,   _______,   _______,   _______,   _______,   _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-    _______, _______, KC_HOME, KC_UP, KC_END, _______,			  _______, KC_BTN1, KC_MS_U,  KC_BTN2, _______, _______,
+    _______, _______, KC_HOME, KC_UP, KC_END, KC_ENT,			  _______, KC_BTN1, KC_MS_U,  KC_BTN2, _______, _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
     _______, _______, KC_LEFT, KC_DOWN, KC_RGHT, KC_WH_U,	      _______, KC_MS_L, KC_MS_D, KC_MS_R, _______,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
@@ -75,26 +75,36 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    HSV hsv = {HSV_GREEN};
+    HSV hsv_layer_0 = {HSV_GREEN};
+    HSV hsv_layer_1 = {HSV_RED};
+    HSV hsv_layer_2 = {HSV_BLUE};
+    HSV hsv_layer_3 = {HSV_PINK};
+    HSV hsv_caps_lock = {HSV_MAGENTA};
+    HSV hsv_selected = hsv_layer_0;
 
-    if (IS_LAYER_ON(1)) {
-        hsv.h = 170;
-        hsv.s = 255;
-        hsv.v = 255;
+    if (IS_LAYER_ON(0)) {
+        hsv_selected = hsv_layer_0;
+    } else if (IS_LAYER_ON(1)) {
+        hsv_selected = hsv_layer_1;
     } else if(IS_LAYER_ON(2)) {
-        hsv.h = 0;
-        hsv.s = 255;
-        hsv.v = 255;
+        hsv_selected = hsv_layer_2;
     } else if(IS_LAYER_ON(3)) {
-        hsv.h = 43;
-        hsv.s = 255;
-        hsv.v = 255;
+        hsv_selected = hsv_layer_3;
     }
 
-    if (hsv.v > rgb_matrix_get_val()) {
-        hsv.v = rgb_matrix_get_val();
+    if (hsv_selected.v > rgb_matrix_get_val()) {
+        hsv_selected.v = rgb_matrix_get_val();
     }
-    RGB rgb = hsv_to_rgb(hsv);
-
+    RGB rgb = hsv_to_rgb(hsv_selected);
     rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+
+    // Caps lock
+    if (IS_LAYER_ON(0) && host_keyboard_led_state().caps_lock) {
+        if (hsv_caps_lock.v > rgb_matrix_get_val()) {
+            hsv_caps_lock.v = rgb_matrix_get_val();
+        }
+        RGB rgb1 = hsv_to_rgb(hsv_caps_lock);
+        // rgb_matrix_set_color_all(rgb1.r, rgb1.g, rgb1.b);
+        rgb_matrix_set_color(0, rgb1.r, rgb1.g, rgb1.b); // assuming caps lock is at led #0
+    }
 }
