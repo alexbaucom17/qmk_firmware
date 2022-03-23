@@ -99,10 +99,23 @@ void set_caps_color(void) {
 }
 
 void set_layer_color(void) {
-    uint8_t layer = biton32(layer_state);
-    HSV hsv = {.h = pgm_read_byte(&layercolors[layer][0]), .s = pgm_read_byte(&layercolors[layer][1]), .v = rgb_matrix_get_val()};
-    RGB rgb = hsv_to_rgb(hsv);
-    rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+    const uint8_t max_layer = get_highest_layer(layer_state);
+    const HSV hsv_default = {.h = pgm_read_byte(&layercolors[0][0]), .s = pgm_read_byte(&layercolors[0][1]), .v = rgb_matrix_get_val()};
+    for (uint8_t row_index = 0; row_index < MATRIX_ROWS; row_index++) {
+        for (uint8_t col_index = 0; col_index < MATRIX_COLS; col_index++) {
+            const uint8_t led_index = g_led_config.matrix_co[row_index][col_index];
+            HSV hsv = hsv_default;
+            if (led_index == NO_LED) continue;
+            for (uint8_t layer = max_layer; layer > 0; layer--) {
+                if (IS_LAYER_OFF(layer)) continue;
+                if (pgm_read_byte(&keymaps[layer][row_index][col_index]) == KC_TRNS) continue;
+                hsv.h = pgm_read_byte(&layercolors[layer][0]);
+                hsv.s = pgm_read_byte(&layercolors[layer][1]);
+            }
+            const RGB rgb = hsv_to_rgb(hsv);
+            rgb_matrix_set_color(led_index, rgb.r, rgb.g, rgb.b);
+        }
+    }
 }
 
 void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
@@ -113,3 +126,4 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     set_caps_color();
 
 }
+
