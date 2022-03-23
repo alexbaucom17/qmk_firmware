@@ -27,9 +27,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //-------------------------------------------------//-----------------------------------------------------------//
     KC_TAB, KC_A, KC_S, KC_D, KC_F, KC_G,	                KC_H, KC_J, KC_K,    KC_L,   KC_SCLN,  KC_QUOT,
 //-------------------------------------------------//-----------------------------------------------------------//
-    KC_LCTL, KC_Z, KC_X, KC_C, KC_V, KC_B,                  KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH,  KC_BSLS,
+    KC_LALT, KC_Z, KC_X, KC_C, KC_V, KC_B,                  KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH,  KC_BSLS,
 //-------------------------------------------------//-----------------------------------------------------------//
-                        KC_LSFT, KC_BSPC, TT(2),		     TT(1),  KC_SPC, KC_RSFT,
+                        KC_LCTL, KC_BSPC, TT(2),		     TT(1),  KC_SPC, KC_RSFT,
                                  KC_DEL,  TT(3),             KC_RGUI, KC_ENT
   ),
 
@@ -42,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //---------------------------------------------------------//-----------------------------------------------------------//
     _______, _______, KC_EQL, LSFT(KC_LBRC), LSFT(KC_RBRC), _______,       _______, KC_P1,   KC_P2,   KC_P3,   KC_EQL,   KC_UNDS,
 //---------------------------------------------------------//-----------------------------------------------------------//
-                               _______, _______, _______,		    _______, KC_P0, _______,
+                               _______, _______, _______,		    _______, _______, KC_P0,
                                         _______,  _______,       _______, _______
   ),
 
@@ -53,20 +53,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //---------------------------------------------------------//--------------------------------------------------------------//
     _______, _______, KC_LEFT, KC_DOWN, KC_RGHT, KC_WH_U,	      _______, KC_MS_L, KC_MS_D, KC_MS_R, _______,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-    _______, LCTL(KC_Z), LCTL(KC_X),  LCTL(KC_C), LCTL(KC_V), KC_WH_D,        _______, KC_LCTL, KC_LALT, KC_LSFT, KC_LGUI,  _______,
+    _______, _______, _______,  _______, _______, KC_WH_D,        _______, KC_LCTL, KC_LALT, KC_LSFT, KC_LGUI,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-                               _______, _______, _______,		    KC_MPRV, KC_MPLY, KC_MNXT,
-                                        _______,  _______,       KC_VOLD, KC_VOLU
+                               _______, _______, _______,		    _______, _______, _______,
+                                        _______,  _______,       _______, _______
   ),
 
   [3] = LAYOUT_split_4x6_5(
-    _______,  _______,   _______,   _______,   _______,   _______,			    _______,   _______,   _______,   _______,   _______,   _______,
+    _______,  _______,   _______,   _______,   _______,   _______,			    KC_ASDN,   KC_ASUP,   KC_ASRP,   _______,   _______,   _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-    _______, _______, _______, _______, _______, _______,			  _______, _______, _______, _______,  _______,  _______,
+    _______, _______, _______, _______, _______, _______,			  RGB_TOG, RGB_VAD, RGB_VAI, _______,  _______,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-    _______, _______, _______,    _______, _______, _______,	      _______, _______, _______, _______, _______,  _______,
+    _______, _______, _______,    _______, _______, _______,	      KC_VOLU, KC_MPRV, KC_MPLY, KC_MNXT, _______,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
-    _______, _______, _______,  _______, _______, _______,        _______, _______, _______, _______, _______,  _______,
+    _______, _______, _______,  _______, _______, _______,        KC_VOLD, _______, _______, _______, _______,  _______,
 //---------------------------------------------------------//--------------------------------------------------------------//
                                _______, _______, _______,		    _______, _______, _______,
                                         _______,  _______,       _______, _______
@@ -74,37 +74,42 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 
-void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    HSV hsv_layer_0 = {HSV_GREEN};
-    HSV hsv_layer_1 = {HSV_RED};
-    HSV hsv_layer_2 = {HSV_BLUE};
-    HSV hsv_layer_3 = {HSV_PINK};
-    HSV hsv_caps_lock = {HSV_MAGENTA};
-    HSV hsv_selected = hsv_layer_0;
+#define CAPS_LOCK_COLOR HSV_MAGENTA
+#define CAPS_LOCK_COLOR_LED_INDEX 0
 
-    if (IS_LAYER_ON(0)) {
-        hsv_selected = hsv_layer_0;
-    } else if (IS_LAYER_ON(1)) {
-        hsv_selected = hsv_layer_1;
-    } else if(IS_LAYER_ON(2)) {
-        hsv_selected = hsv_layer_2;
-    } else if(IS_LAYER_ON(3)) {
-        hsv_selected = hsv_layer_3;
-    }
+const uint8_t PROGMEM layercolors[][3] = {
+  [0] = {HSV_GREEN},
+  [1] = {HSV_RED},
+  [2] = {HSV_BLUE},
+  [3] = {HSV_PINK},
+};
 
-    if (hsv_selected.v > rgb_matrix_get_val()) {
-        hsv_selected.v = rgb_matrix_get_val();
-    }
-    RGB rgb = hsv_to_rgb(hsv_selected);
-    rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+RGB hsv_to_rgb_with_brightness(HSV hsv_in) {
+    HSV hsv = {hsv_in.h, hsv_in.s, rgb_matrix_get_val()};
+    RGB rgb = hsv_to_rgb(hsv);
+    return rgb;
+}
 
-    // Caps lock
+void set_caps_color(void) {
     if (IS_LAYER_ON(0) && host_keyboard_led_state().caps_lock) {
-        if (hsv_caps_lock.v > rgb_matrix_get_val()) {
-            hsv_caps_lock.v = rgb_matrix_get_val();
-        }
-        RGB rgb1 = hsv_to_rgb(hsv_caps_lock);
-        // rgb_matrix_set_color_all(rgb1.r, rgb1.g, rgb1.b);
-        rgb_matrix_set_color(0, rgb1.r, rgb1.g, rgb1.b); // assuming caps lock is at led #0
+        HSV hsv = {CAPS_LOCK_COLOR};
+        RGB rgb = hsv_to_rgb_with_brightness(hsv);
+        rgb_matrix_set_color(CAPS_LOCK_COLOR_LED_INDEX, rgb.r, rgb.g, rgb.b);
     }
+}
+
+void set_layer_color(void) {
+    uint8_t layer = biton32(layer_state);
+    HSV hsv = {.h = pgm_read_byte(&layercolors[layer][0]), .s = pgm_read_byte(&layercolors[layer][1]), .v = rgb_matrix_get_val()};
+    RGB rgb = hsv_to_rgb(hsv);
+    rgb_matrix_set_color_all(rgb.r, rgb.g, rgb.b);
+}
+
+void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    // Handle layer colors
+    set_layer_color();
+
+    // Handle caps lock toggle
+    set_caps_color();
+
 }

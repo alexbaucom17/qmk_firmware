@@ -35,6 +35,7 @@
 #define TAPPING_TOGGLE 2
 #define SPLIT_LAYER_STATE_ENABLE
 #define SPLIT_LED_STATE_ENABLE
+#define AUTO_SHIFT_TIMEOUT 120
 
 #ifdef VIA_ENABLE
 /* VIA configuration. */
