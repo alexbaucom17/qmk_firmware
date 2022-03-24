@@ -18,6 +18,26 @@
 #include QMK_KEYBOARD_H
 #include "color.h"
 
+// Define a type for as many tap dance states as you need
+typedef enum {
+    TD_NONE,
+    TD_UNKNOWN,
+    TD_SINGLE_TAP,
+    TD_SINGLE_HOLD,
+    TD_DOUBLE_TAP
+} td_state_t;
+
+enum {
+    LEFT_LAYER, // Our custom tap dance key; add any other tap dance keys to this enum
+};
+
+// Function associated with all tap dances
+td_state_t cur_dance(qk_tap_dance_state_t *state);
+
+// Functions associated with individual tap dances
+void ql_finished(qk_tap_dance_state_t *state, void *user_data);
+void ql_reset(qk_tap_dance_state_t *state, void *user_data);
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [0] = LAYOUT_split_4x6_5(
@@ -29,14 +49,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //-------------------------------------------------//-----------------------------------------------------------//
     KC_LALT, KC_Z, KC_X, KC_C, KC_V, KC_B,                  KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH,  KC_BSLS,
 //-------------------------------------------------//-----------------------------------------------------------//
-                        KC_LCTL, KC_BSPC, TT(2),		     TT(1),  KC_SPC, KC_RSFT,
+                        KC_LCTL, KC_BSPC, TD(LEFT_LAYER),		     TT(1),  KC_SPC, KC_RSFT,
                                  KC_DEL,  TT(3),             KC_RGUI, KC_ENT
   ),
 
   [1] = LAYOUT_split_4x6_5(
    KC_F12,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,			    KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,   KC_F11,
 //---------------------------------------------------------//-----------------------------------------------------------//
-    _______,   _______, KC_MINS, KC_LBRC, KC_RBRC, _______,			_______, KC_P7,   KC_P8,   KC_P9,   _______,  KC_PLUS,
+    _______,   _______, KC_PLUS, KC_LBRC, KC_RBRC, _______,			_______, KC_P7,   KC_P8,   KC_P9,   _______,  KC_PLUS,
 //---------------------------------------------------------//-----------------------------------------------------------//
     _______, _______, LSFT(KC_MINS), KC_LPRN, KC_RPRN,  _______,	      _______, KC_P4,   KC_P5,   KC_P6,   KC_MINS,  KC_PIPE,
 //---------------------------------------------------------//-----------------------------------------------------------//
@@ -126,4 +146,62 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     set_caps_color();
 
 }
+
+// Determine the current tap dance state
+td_state_t cur_dance(qk_tap_dance_state_t *state) {
+    if (state->count == 1) {
+        if (!state->pressed) return TD_SINGLE_TAP;
+        else return TD_SINGLE_HOLD;
+    } else if (state->count == 2) return TD_DOUBLE_TAP;
+    else return TD_UNKNOWN;
+}
+
+// Initialize tap structure associated with example tap dance key
+static td_state_t td_state = TD_NONE;
+
+// Functions that control what our tap dance key does
+void ql_finished(qk_tap_dance_state_t *state, void *user_data) {
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+            set_oneshot_layer(1, ONESHOT_START);
+            break;
+        case TD_SINGLE_HOLD:
+            layer_on(2);
+            break;
+        case TD_DOUBLE_TAP:
+            // Check to see if the layer is already set
+            if (layer_state_is(2)) {
+                // If already set, then switch it off
+                layer_off(2);
+            } else {
+                // If not already set, then switch the layer on
+                layer_on(2);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void ql_reset(qk_tap_dance_state_t *state, void *user_data) {
+    // If the key was held down and now is released then switch off the layer
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+            clear_oneshot_layer_state(ONESHOT_PRESSED);
+            break;
+        case TD_SINGLE_HOLD:
+            layer_off(2);
+            break;
+        default:
+            break;
+    }
+    td_state = TD_NONE;
+}
+
+// Associate our tap dance key with its functionality
+qk_tap_dance_action_t tap_dance_actions[] = {
+    [LEFT_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset)
+};
+
 

@@ -33,6 +33,7 @@
 /* Regular configuration unrelated to the adapter. */
 
 #define TAPPING_TOGGLE 2
+#define TAPPING_TERM 175
 #define SPLIT_LAYER_STATE_ENABLE
 #define SPLIT_LED_STATE_ENABLE
 #define AUTO_SHIFT_TIMEOUT 120
