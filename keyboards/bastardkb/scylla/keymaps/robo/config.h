@@ -36,7 +36,7 @@
 #define TAPPING_TERM 175
 #define SPLIT_LAYER_STATE_ENABLE
 #define SPLIT_LED_STATE_ENABLE
-#define AUTO_SHIFT_TIMEOUT 120
+#define AUTO_SHIFT_TIMEOUT 150
 
 #ifdef VIA_ENABLE
 /* VIA configuration. */
